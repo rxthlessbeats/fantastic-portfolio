@@ -1,49 +1,34 @@
-import { About, Blog, Gallery, Home, Newsletter, Person, Social, Work } from "@/types";
-import { Line, Row, Text } from "@once-ui-system/core";
+import { About, Home, Newsletter, Person, Projects, Publications, Social, Work } from "@/types";
+import { Row, Text } from "@once-ui-system/core";
 
 const person: Person = {
-  firstName: "Selene",
-  lastName: "Yu",
-  name: `Selene Yu`,
-  role: "Design Engineer",
-  avatar: "/images/avatar.jpg",
-  email: "example@gmail.com",
-  location: "Asia/Jakarta", // Expecting the IANA time zone identifier, e.g., 'Europe/Vienna'
-  languages: ["English", "Bahasa"], // optional: Leave the array empty if you don't want to display languages
+  firstName: "Tin-Yu",
+  lastName: "Leu",
+  name: "Magnus Leu",
+  role: "ML Engineer & Agentic AI Developer",
+  avatar: "/images/portfolio_img.jpeg",
+  email: "lutinyu@gmail.com",
+  location: "Los Angeles, CA",
+  languages: ["English", "Mandarin"],
 };
 
 const newsletter: Newsletter = {
-  display: true,
+  display: false,
   title: <>Subscribe to {person.firstName}'s Newsletter</>,
-  description: <>My weekly newsletter about creativity and engineering</>,
+  description: <>Updates on ML, agentic AI, and engineering projects</>,
 };
 
 const social: Social = [
-  // Links are automatically displayed.
-  // Import new icons in /once-ui/icons.ts
-  // Set essentials: true for links you want to show on the about page
   {
     name: "GitHub",
     icon: "github",
-    link: "https://github.com/once-ui-system",
+    link: "https://github.com/rxthlessbeats",
     essential: true,
   },
   {
     name: "LinkedIn",
     icon: "linkedin",
-    link: "https://www.linkedin.com/company/once-ui/",
-    essential: true,
-  },
-  {
-    name: "Instagram",
-    icon: "instagram",
-    link: "https://www.instagram.com/once_ui/",
-    essential: false,
-  },
-  {
-    name: "Threads",
-    icon: "threads",
-    link: "https://www.threads.com/@once_ui",
+    link: "https://www.linkedin.com/in/magnus-tinyu-lu/",
     essential: true,
   },
   {
@@ -59,25 +44,28 @@ const home: Home = {
   image: "/images/og/home.jpg",
   label: "Home",
   title: `${person.name}'s Portfolio`,
-  description: `Portfolio website showcasing my work as a ${person.role}`,
-  headline: <>Building bridges between design and code</>,
+  description: `Portfolio showcasing ML, agentic AI, and full-stack work by ${person.name}`,
+  headline: <>Building intelligent systems with ML and agentic AI</>,
   featured: {
     display: true,
     title: (
-      <Row gap="12" vertical="center">
-        <strong className="ml-4">Once UI</strong>{" "}
-        <Line background="brand-alpha-strong" vert height="20" />
+      <Row gap="8" vertical="center">
+        <strong className="ml-4">MenTeR</strong>
         <Text marginRight="4" onBackground="brand-medium">
-          Featured work
+          IEEE ICLAD 2025
         </Text>
       </Row>
     ),
-    href: "/work/building-once-ui-a-customizable-design-system",
+    href: "/publications/menter-rf-analog-multi-agent-netlist-design",
   },
   subline: (
-    <>
-    I'm Selene, a design engineer at <Text as="span" size="xl" weight="strong">ONCE UI</Text>, where I craft intuitive <br /> user experiences. After hours, I build my own projects.
-</>
+    <Text wrap="balance" onBackground="neutral-weak" variant="heading-default-xl">
+      I'm Magnus, an ML engineer pursuing an MS in Machine Learning and Data Science at{" "}
+      <Text as="span" size="xl" weight="strong">
+        USC
+      </Text>
+      . I build machine learning and deep learning models, LLM agent systems and production full-stack platforms.
+    </Text>
   ),
 };
 
@@ -85,7 +73,7 @@ const about: About = {
   path: "/about",
   label: "About",
   title: `About – ${person.name}`,
-  description: `Meet ${person.name}, ${person.role} from ${person.location}`,
+  description: `Meet ${person.name}, ${person.role} based in Los Angeles`,
   tableOfContent: {
     display: true,
     subItems: false,
@@ -94,7 +82,7 @@ const about: About = {
     display: true,
   },
   calendar: {
-    display: true,
+    display: false,
     link: "https://cal.com",
   },
   intro: {
@@ -102,52 +90,104 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        Selene is a Jakarta-based design engineer with a passion for transforming complex challenges
-        into simple, elegant design solutions. Her work spans digital interfaces, interactive
-        experiences, and the convergence of design and technology.
+        A USC graduate student whose work focuses on applying machine learning and deep learning 
+        to computer vision, natural language processing, and quantitative trading. 
+        I have also worked on multi-agent LLM workflows and RAG systems, 
+        and I am interested in building practical AI-driven systems that combine research, 
+        software engineering, and real-world applications.
       </>
     ),
   },
   work: {
-    display: true, // set to false to hide this section
+    display: true,
     title: "Work Experience",
     experiences: [
       {
-        company: "FLY",
-        timeframe: "2022 - Present",
-        role: "Senior Design Engineer",
+        company: "MediaTek Inc.",
+        timeframe: "Oct 2024 – Feb 2025",
+        role: "LLM-Based Agentic System Developer",
         achievements: [
           <>
-            Redesigned the UI/UX for the FLY platform, resulting in a 20% increase in user
-            engagement and 30% faster load times.
+            Researched and built an LLM-based agent system with AutoGen for robust SPICE code
+            generation using CoT, MoE, and RAG—achieving nearly 100% accuracy vs. the prior
+            state-of-the-art of 76.1%.
           </>,
           <>
-            Spearheaded the integration of AI tools into design workflows, enabling designers to
-            iterate 50% faster.
+            Implemented an automatic agentic-workflow generation system, improving domain-specific
+            task accuracy by 6% on average across six benchmarks.
+          </>,
+          <>
+            Contributed to DaVinci, a generative AI platform used by 50+ companies, by improving
+            multi-agent communication and implementing CI/CD pipelines for reliable deployment.
+          </>,
+          <>
+            Integrated 5+ language models into the platform to better meet diverse user needs.
           </>,
         ],
-        images: [
-          // optional: leave the array empty if you don't want to display images
-          {
-            src: "/images/projects/project-01/cover-01.jpg",
-            alt: "Once UI Project",
-            width: 16,
-            height: 9,
-          },
-        ],
+        images: [],
       },
       {
-        company: "Creativ3",
-        timeframe: "2018 - 2022",
-        role: "Lead Designer",
+        company: "Industrial Technology Research Institute",
+        timeframe: "Jul 2023 – Feb 2025",
+        role: "Data Scientist & AI Software Engineer",
         achievements: [
           <>
-            Developed a design system that unified the brand across multiple platforms, improving
-            design consistency by 40%.
+            Achieved British Hypertension Society (BHS) Grade A using a CNN-LSTM model to predict
+            blood pressure from ECG and PPG signals on the MIMIC database.
           </>,
           <>
-            Led a cross-functional team to launch a new product line, contributing to a 15% increase
-            in overall company revenue.
+            Built a U-Net-based sleep-state detection model, improving precision in sleep-pattern
+            analysis.
+          </>,
+          <>
+            Developed and deployed three React.js and Vue.js dynamic web platforms to production.
+          </>,
+          <>
+            Integrated AutoML pipelines to streamline machine learning deployment in research
+            projects.
+          </>,
+        ],
+        images: [],
+      },
+      {
+        company: "National Tsing Hua University — Institute of Service Science",
+        timeframe: "Aug 2023 – Oct 2024",
+        role: "LLM Knowledge Management Researcher & Full Stack Developer",
+        achievements: [
+          <>
+            Boosted GPT-4 precision by 50% using Retrieval-Augmented Generation, Chain-of-Thought
+            prompting, and vector databases.
+          </>,
+          <>
+            Developed a knowledge-management system with Langchain and AutoGen; adopted by 100+
+            researchers to improve cross-domain knowledge sharing.
+          </>,
+          <>
+            Built and deployed full-stack infrastructure with Django, SQL, RESTful APIs, and a
+            Next.js frontend for scalable multi-agent collaborative reasoning.
+          </>,
+        ],
+        images: [],
+      },
+      {
+        company: "Deloitte",
+        timeframe: "Jul 2022 – Sep 2022",
+        role: "Financial Advisory Intern",
+        achievements: [
+          <>
+            Developed a Know Your Client (KYC) process that enhanced operational efficiency by 50%
+            across the organization.
+          </>,
+          <>
+            Conducted in-depth analyses of the real estate industry to facilitate informed
+            decision-making.
+          </>,
+          <>
+            Assisted managers with collecting financial data and conducting fundamental analysis of
+            publicly traded companies.
+          </>,
+          <>
+            Executed 50+ KYC identification projects with precision and attention to detail.
           </>,
         ],
         images: [],
@@ -155,150 +195,113 @@ const about: About = {
     ],
   },
   studies: {
-    display: true, // set to false to hide this section
-    title: "Studies",
+    display: true,
+    title: "Education",
     institutions: [
       {
-        name: "University of Jakarta",
-        description: <>Studied software engineering.</>,
+        name: "University of Southern California",
+        timeframe: "Aug 2025 – Present",
+        department: "MS in Machine Learning and Data Science (ECE MLDS) · Los Angeles, CA",
+        achievements: [
+          <>Relevant Courses: Machine Learning, Deep Learning, Linear Algebra, Probability and Statistics, Data Structures and Algorithms</>,
+        ],
       },
       {
-        name: "Build the Future",
-        description: <>Studied online marketing and personal branding.</>,
+        name: "National Tsing Hua University",
+        timeframe: "Sep 2020 – Jan 2025",
+        department: "BBA in Quantitative Finance & Data Science · Hsinchu, Taiwan",
+        achievements: [
+          <>Relevant Courses: Data Mining, Text Mining, Financial Engineering, Mathematical Statistics, Advanced Calculus</>,
+        ],
       },
     ],
   },
   technical: {
-    display: true, // set to false to hide this section
+    display: true,
     title: "Technical skills",
     skills: [
       {
-        title: "Figma",
+        title: "Machine learning & data science",
         description: (
-          <>Able to prototype in Figma with Once UI with unnatural speed.</>
+          <>
+            Deep learning for biomedical signals, computer vision, and predictive modeling with
+            PyTorch and production ML workflows.
+          </>
         ),
         tags: [
-          {
-            name: "Figma",
-            icon: "figma",
-          },
+          { name: "Python", icon: "python" },
+          { name: "PyTorch", icon: "pytorch" },
+          { name: "Computer Vision", icon: "opencv" },
+          { name: "NLP", icon: "huggingface" },
+          { name: "C++", icon: "cplusplus" },
+          { name: "R", icon: "r" },
+          { name: "SQL", icon: "postgresql" },
         ],
-        // optional: leave the array empty if you don't want to display images
-        images: [
-          {
-            src: "/images/projects/project-01/cover-02.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
-          },
-          {
-            src: "/images/projects/project-01/cover-03.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
-          },
-        ],
+        images: [],
       },
       {
-        title: "Next.js",
+        title: "Agentic AI & LLM systems",
         description: (
-          <>Building next gen apps with Next.js + Once UI + Supabase.</>
+          <>
+            Multi-agent orchestration, RAG, and workflow automation for domain-specific code and
+            knowledge management.
+          </>
         ),
         tags: [
-          {
-            name: "JavaScript",
-            icon: "javascript",
-          },
-          {
-            name: "Next.js",
-            icon: "nextjs",
-          },
-          {
-            name: "Supabase",
-            icon: "supabase",
-          },
+          { name: "AutoGen", icon: "rocket" },
+          { name: "Langchain", icon: "langchain" },
+          { name: "LLM", icon: "openai" },
+          { name: "RAG", icon: "elasticsearch" },
+          { name: "Vector DB", icon: "milvus" },
+          { name: "Pydantic", icon: "pydantic" },
         ],
-        // optional: leave the array empty if you don't want to display images
-        images: [
-          {
-            src: "/images/projects/project-01/cover-04.jpg",
-            alt: "Project image",
-            width: 16,
-            height: 9,
-          },
+        images: [],
+      },
+      {
+        title: "Full-stack & MLOps",
+        description: (
+          <>
+            End-to-end web platforms, REST APIs, containerized deployment, and CI/CD on cloud
+            infrastructure.
+          </>
+        ),
+        tags: [
+          { name: "React.js", icon: "react" },
+          { name: "Vue.js", icon: "vue" },
+          { name: "Next.js", icon: "nextjs" },
+          { name: "Git", icon: "git" },
+          { name: "FastAPI", icon: "fastapi" },
+          { name: "Django", icon: "django" },
+          { name: "Docker", icon: "docker" },
+          { name: "AWS", icon: "amazonwebservices" },
+          { name: "CI/CD", icon: "githubactions" },
+          { name: "MySQL", icon: "mysql" },
         ],
+        images: [],
       },
     ],
   },
 };
 
-const blog: Blog = {
-  path: "/blog",
-  label: "Blog",
-  title: "Writing about design and tech...",
-  description: `Read what ${person.name} has been up to recently`,
-  // Create new blog posts by adding a new .mdx file to app/blog/posts
-  // All posts will be listed on the /blog route
+const projects: Projects = {
+  path: "/projects",
+  label: "Projects",
+  title: `Latest projects by ${person.name}`,
+  description: `ML, agentic AI, and engineering projects by ${person.name}`,
 };
 
 const work: Work = {
   path: "/work",
-  label: "Work",
-  title: `Projects – ${person.name}`,
-  description: `Design and dev projects by ${person.name}`,
-  // Create new project pages by adding a new .mdx file to app/blog/posts
-  // All projects will be listed on the /home and /work routes
+  label: "Websites",
+  title: `Websites by ${person.name}`,
+  description: `ML, agentic AI, and software projects by ${person.name}`,
 };
 
-const gallery: Gallery = {
-  path: "/gallery",
-  label: "Gallery",
-  title: `Photo gallery – ${person.name}`,
-  description: `A photo collection by ${person.name}`,
-  // Images by https://lorant.one
-  // These are placeholder images, replace with your own
-  images: [
-    {
-      src: "/images/gallery/horizontal-1.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/vertical-4.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/horizontal-3.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/vertical-1.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/vertical-2.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-    {
-      src: "/images/gallery/horizontal-2.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/horizontal-4.jpg",
-      alt: "image",
-      orientation: "horizontal",
-    },
-    {
-      src: "/images/gallery/vertical-3.jpg",
-      alt: "image",
-      orientation: "vertical",
-    },
-  ],
+const publications: Publications = {
+  path: "/publications",
+  label: "Publications",
+  title: `Publications by ${person.name}`,
+  description: `Research papers and write-ups by ${person.name}`,
 };
 
-export { person, social, newsletter, home, about, blog, work, gallery };
+export { person, social, newsletter, home, about, projects, publications, work };

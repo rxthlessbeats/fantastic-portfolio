@@ -1,0 +1,179 @@
+---
+title: "Intent Classification of Airline Travel Information System"
+subtitle: "Using Logistic regression and CNN to classify natural language queries"
+summary: "PyTorch and scikit-learn pipeline on Rasa-format ATIS data: entity-aware masking, three model recipes, and test evaluation with accuracy and macro-F1 on imbalanced travel intents."
+image: "/images/projects/atis/atis_thumbnail.png"
+publishedAt: "2026-05-10"
+tag: "Natural Language Processing"
+---
+
+## Introduction
+
+This project implements **intent classification** for an airline travel information system. Given a user query (e.g. “show me flights from Boston to Denver”), the model predicts the intent label so downstream dialogue logic can route the request—flights, fares, ground service, and related travel information.
+
+## Problem & dataset
+
+**Problem:** Utterances are short and phrasing varies widely. The classifier must map text to the correct intent under **class imbalance** (e.g. `flight` dominates; rare or compound labels are hard).
+
+**Dataset:** [ATIS](https://github.com/huggingface/datasets/blob/main/datasets/atis/README.md) (Airline Travel Information System), stored as **Rasa NLU JSON** (`train.json`, `test.json`) with `text`, `intent`, and optional `entities` for slot spans.
+
+Preprocessing highlights:
+
+- Lowercasing, whitespace normalization, multi-word collapse
+- **Shared-intent filter** — keep only intents present in both train and test splits
+- **Stratified** train/validation split; singleton intents kept in train
+- **Entity masking** — replace cities, airlines, airports, dates, times, and numerics with typed placeholders (e.g. `[city]`, `[airline]`) so models learn intent patterns rather than memorizing entities
+
+## Methods
+
+Three recipes share the same splits and evaluation protocol (`config.yaml` → `train.recipe`):
+
+<Table
+  data={{
+    headers: [
+      { content: "Model", key: "model" },
+      { content: "Representation", key: "repr" },
+      { content: "Notes", key: "notes" },
+    ],
+    rows: [
+      ["TF-IDF + logistic regression", "1–2 gram TF-IDF (max 8k features, sublinear TF)", "Fast, strong baseline on masked text"],
+      ["TextCNN", "Word, char, or SentencePiece BPE tokens + learned or GloVe embeddings", "Multi-width conv filters (2, 3, 4); dropout; early stopping"],
+      ["Char-CNN", "Character sequences", "Robust to spelling/noise; same CNN head"],
+    ],
+  }}
+/>
+
+Training options include **inverse class weights** (and dampened variant), **cross-entropy** or **focal loss**, LR scheduling, and optional token-level random deletion augmentation. Artifacts are saved under `runs/<run_name>/` (`model.pt`, `bundle.pkl`, `metrics.json`, confusion matrix, classification report).
+
+### TF-IDF + logistic regression
+
+Sparse TF-IDF features feed a linear classifier head—fast to train and easy to interpret as a baseline on masked utterances.
+
+<Media
+  src="/images/projects/atis/Logistic_diagram.png"
+  alt="TF-IDF and logistic regression pipeline"
+  aspectRatio="32/9"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  TF-IDF + logistic regression model structure.
+</Text>
+
+### TextCNN and Char-CNN
+
+Token or character embeddings pass through parallel convolutional filters; max-pooling over each filter width produces a fixed-size representation for the intent classifier.
+
+<Media
+  src="/images/projects/atis/CNN_diagram.png"
+  alt="TextCNN architecture with embedding and convolutional layers"
+  aspectRatio="32/12"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  TextCNN / Char-CNN model structure (Kim-style multi-width convolutions).
+</Text>
+
+## Results
+
+Representative **held-out test** metrics (shared-intent filter, entity masking enabled where configured):
+
+<Table
+  data={{
+    headers: [
+      { content: "Model", key: "model" },
+      { content: "Accuracy", key: "acc" },
+      { content: "Macro F1", key: "macro" },
+      { content: "Weighted F1", key: "weighted" },
+    ],
+    rows: [
+      ["TF-IDF + LR", "92.3%", "52.5%", "90.6%"],
+      ["Char-CNN", "94.0%", "59.5%", "93.6%"],
+      ["TextCNN (word + masking)", "96.2%", "70.1%", "95.9%"],
+    ],
+  }}
+/>
+
+Headline accuracy is high because frequent intents (`flight`, `ground_service`, `airfare`) dominate. **Macro-F1** exposes weakness on rare or **compound intents** (e.g. `flight+airfare`, `city`, `quantity`)—the main error mode alongside semantically adjacent pairs (`flight` vs `airfare`).
+
+Training curves below track validation loss, accuracy, and macro-F1. The **TF-IDF + LR** baseline converges quickly; **TextCNN** uses early stopping when validation macro-F1 plateaus.
+
+<Media
+  src="/images/projects/atis/lr_hist.png"
+  alt="TF-IDF logistic regression training and validation curves"
+  aspectRatio="32/9"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  TF-IDF + LR — training and validation curves.
+</Text>
+
+<Media
+  src="/images/projects/atis/cnn_hist.png"
+  alt="TextCNN training and validation curves"
+  aspectRatio="32/9"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  TextCNN — training and validation curves.
+</Text>
+
+### Embedding visualization
+
+PCA projection of learned word embeddings colored by intent—clusters show which intents share similar lexical structure after masking and training.
+
+<Media
+  src="/images/projects/atis/embedding_pca.png"
+  alt="PCA of TextCNN word embeddings by intent"
+  aspectRatio="3/2"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  PCA of embedding space (TextCNN, colored by intent).
+</Text>
+
+## Key takeaways
+
+- **Entity masking** (~10% gain) and **TF-IDF bigrams** helped most; **word-level TextCNN** was best (96.2% acc, 70.1% macro-F1). **Class weighting** improved rare-intent recall.
+- **Stop-word removal**, **BPE/char tokenization**, and **focal loss + class weights** underperformed. Random deletion helped TF-IDF but hurt CNNs.
+- **Macro-F1** matters more than accuracy here: weighted F1 stays high on `flight`, while rare/compound intents and **test-only labels** drag macro-F1 down. Preprocessing mattered as much as architecture.
+
+## Limitations & future work
+
+**Limitations:** Test labels missing from training; few shots per minority class; bag-of-words / local-CNN limits on semantic overlap (`flight` vs `airfare`). Intent-only—no slot filling.
+
+**Future work:** Matched-label splits + template augmentation for rare intents; BERT under the same masking and metrics; intent-description models for unseen classes.
+
+## Project links
+
+<Row gap="12" wrap marginTop="8" marginBottom="32">
+  <Button
+    href="https://github.com/rxthlessbeats/Natural-Language-Intent-Classification.git"
+    variant="secondary"
+    label="GitHub repository"
+    prefixIcon="github"
+    size="m"
+    arrowIcon
+  />
+  <Button
+    href="https://www.overleaf.com/read/ghsdqjbqbrhc#59f942"
+    variant="secondary"
+    label="Paper (Overleaf)"
+    prefixIcon="document"
+    size="m"
+    arrowIcon
+  />
+</Row>
+
+## Index terms
+
+Intent classification · ATIS · Airline travel information · TextCNN · TF-IDF · Entity masking · Dialogue systems · PyTorch

@@ -1,0 +1,152 @@
+---
+title: "Optimizing Option Pricing and Implied Volatility with Advanced Neural Networks"
+subtitle: "Extending Liu, Oosterlee & Bohte with Optuna tuning and TensorFlow model pruning"
+summary: "MLPs approximate Black-Scholes option prices and implied volatility on 1M Latin-hypercube samples—~10% lower MSE vs the original BS-ANN/IV-ANN baselines and ~50% faster IV inference after Optuna and pruning."
+image: "/images/projects/option_ann/option_ann.png"
+publishedAt: "2024-09-29"
+tag: "Quantitative Finance, Deep Learning"
+---
+
+## Introduction
+
+This project builds on **Liu, Oosterlee, and Bohte**, who used artificial neural networks (ANNs) to price European options and infer **implied volatility** faster than iterative solvers. We replicate their experiments, then improve the pipeline with **Optuna** hyperparameter search, learning-rate decay tuning, and **TensorFlow model pruning** (node sparsity).
+
+Compared with the original BS-ANN and IV-ANN setups, our enhancements target a **~10% accuracy gain** (lower MSE on train and test) and **~50% faster** implied-volatility inference—without relying on a full Heston implied-volatility surrogate. We also benchmark against **Random Forest** and **XGBoost** regressors on the same data splits.
+
+## Problem & models
+
+**Goal:** Learn a fast surrogate f<sub>θ</sub>(x) ≈ y where inputs are market parameters and outputs are either **scaled call prices** (Black–Scholes) or **implied volatility** σ.
+
+**Asset dynamics:** Geometric Brownian motion underpins the Black–Scholes PDE for European calls. Implied volatility inverts the pricing map—traditionally solved with root-finding (Newton, Brent, bisection). We train ANNs to replace repeated PDE/solver calls at inference time.
+
+**Data:** **Latin Hypercube Sampling** over wide parameter boxes (following the original paper), **1M** samples for Black–Scholes pricing; labels from closed-form BS. Implied-volatility data uses BS prices with gradient-friendly transforms (subtract intrinsic value, log time value) before ANN training. Splits: **90% train / 10% test**, multiple random seeds for stability.
+
+<Table
+  data={{
+    headers: [
+      { content: "Task", key: "task" },
+      { content: "Inputs (wide range)", key: "inputs" },
+      { content: "Output", key: "out" },
+    ],
+    rows: [
+      ["BS-ANN (call price)", "S ∈ [0.4, 1.6], T ∈ [0.2, 1.1] yr, r ∈ [0.02, 0.1], σ ∈ [0.01, 1.0]", "Scaled call C ∈ [0, 0.9]"],
+      ["IV-ANN", "S, T, r, scaled time value", "σ ∈ [0.05, 1.0]"],
+    ],
+  }}
+/>
+
+## Methods
+
+Pipeline (enhanced over Liu et al.):
+
+1. Sample parameters (LHS) and compute labels (BS closed form or IV target).
+2. Train/test split; train **MLP** with MSE loss.
+3. **Optuna** (TPE sampler, ~100 trials) over depth, width, activation, optimizer, batch size, dropout, init, batch norm.
+4. Tune **exponential learning-rate decay** after 1200 epochs at constant LR (decay rates from −0.1 to −0.01).
+5. **Prune** IV-ANN with TensorFlow Model Optimization (sparsity 0.50 → 0.80, steps 2000–4000).
+6. Deploy trained ANN in place of iterative solvers at inference.
+
+### BS-ANN architecture (after Optuna)
+
+<Table
+  data={{
+    headers: [
+      { content: "Hyperparameter", key: "hp" },
+      { content: "Selected value", key: "val" },
+    ],
+    rows: [
+      ["Hidden layers", "4"],
+      ["Neurons / layer", "564"],
+      ["Activation", "ReLU"],
+      ["Optimizer", "Adam"],
+      ["Batch size", "1035"],
+      ["Dropout", "0.0"],
+      ["Init", "Glorot uniform"],
+      ["LR decay (best)", "≈ −0.065"],
+    ],
+  }}
+/>
+
+### IV-ANN architecture (after Optuna)
+
+<Table
+  data={{
+    headers: [
+      { content: "Hyperparameter", key: "hp" },
+      { content: "Selected value", key: "val" },
+    ],
+    rows: [
+      ["Hidden layers", "6"],
+      ["Neurons / layer", "434"],
+      ["Activation", "ReLU"],
+      ["Optimizer", "Adam"],
+      ["Batch size", "1090"],
+      ["LR decay (best)", "≈ −0.011"],
+    ],
+  }}
+/>
+
+Original reference architecture: 4 × 400 neurons, batch 1024. Optuna search space included 2–6 layers, 200–600 neurons, ReLU/tanh/sigmoid/ELU, Adam/RMSprop/SGD, batch 1024–2048.
+
+## Results
+
+**Black–Scholes (BS-ANN):** On the wide test set, root-averaged MSE implies pricing error on the order of **~0.007% of strike**; max deviation under **0.04%**. Training on a **wider** parameter box than the deployment range improved robustness. Our Optuna + decay setup reduced train/test MSE by roughly **10%** vs the original BS-ANN and beat **Random Forest** / **XGBoost** on the same features.
+
+**Implied volatility (IV-ANN):** Input scaling (intrinsic subtraction + log time value) was critical—unscaled inputs degraded MSE sharply. Pruned IV-ANN kept accuracy while cutting compute.
+
+**Solver comparison (20k European calls, GPU timing):** IV-ANN remains the fastest robust option; our pruned model reaches **~0.1 s** vs **~0.2 s** for the original IV-ANN on GPU (~**50%** speedup). Classical Brent is accurate but slower; Newton and secant trade robustness for speed.
+
+<Table
+  data={{
+    headers: [
+      { content: "Method", key: "method" },
+      { content: "GPU time (approx.)", key: "time" },
+      { content: "Robust", key: "robust" },
+    ],
+    rows: [
+      ["IV-ANN (ours)", "~0.1 s", "Yes"],
+      ["IV-ANN (original)", "~0.2 s", "Yes"],
+      ["Newton–Raphson", "~19.7 s", "No"],
+      ["Brent", "~52.1 s", "Yes"],
+      ["Bisection", "~338 s", "Yes"],
+    ],
+  }}
+/>
+
+## Key takeaways
+
+- **Optuna** improved depth/width, optimizer, and batch settings beyond the fixed 4×400 MLP; tuned **LR decay** mattered as much as architecture (over-aggressive decay stalled MSE).
+- **Input engineering** for IV (intrinsic removal + log time value) and **wide LHS training** were as important as network size.
+- **Pruning** (50%→80% sparsity) delivered ~**50%** faster IV inference with little accuracy loss.
+- ANN surrogates excel when batch GPU inference replaces thousands of root-finding iterations; tree models are competitive on price regression but not on end-to-end IV speed.
+
+## Limitations & future work
+
+**Limitations:** European calls under GBM/Black–Scholes only; replication-focused rather than production risk systems; Heston/COS paths noted in the paper but not the main ANN target here.
+
+**Future work:** Extend Optuna + pruning to Heston surrogates; joint price–IV models; uncertainty calibration; deployment benchmarks on live volatility surfaces.
+
+## Project links
+
+<Row gap="12" wrap marginTop="8" marginBottom="32">
+  <Button
+    href="https://github.com/rxthlessbeats/ANN_Black_Scholes_Acceleration.git"
+    variant="secondary"
+    label="GitHub repository"
+    prefixIcon="github"
+    size="m"
+    arrowIcon
+  />
+  <Button
+    href="https://www.overleaf.com/read/vnzwnbdygccn#180ab0"
+    variant="secondary"
+    label="Paper (Overleaf)"
+    prefixIcon="document"
+    size="m"
+    arrowIcon
+  />
+</Row>
+
+## Index terms
+
+Neural networks · Model compression · Option pricing · Implied volatility · Optuna · Black–Scholes · TensorFlow pruning

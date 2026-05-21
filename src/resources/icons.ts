@@ -23,13 +23,47 @@ import {
 } from "react-icons/pi";
 
 import {
-  SiJavascript,
-  SiNextdotjs,
+  SiAmazonwebservices,
+  SiCplusplus,
+  SiDjango,
+  SiDocker,
+  SiElasticsearch,
+  SiFastapi,
   SiFigma,
+  SiGit,
+  SiGithubactions,
+  SiHuggingface,
+  SiJavascript,
+  SiLangchain,
+  SiMilvus,
+  SiMysql,
+  SiNextdotjs,
+  SiOpenai,
+  SiOpencv,
+  SiPostgresql,
+  SiPydantic,
+  SiPython,
+  SiPytorch,
+  SiR,
+  SiReact,
   SiSupabase,
+  SiVuedotjs,
 } from "react-icons/si";
 
-import { FaDiscord, FaGithub, FaLinkedin, FaX, FaThreads, FaInstagram, FaXTwitter, FaFacebook, FaPinterest, FaWhatsapp, FaReddit, FaTelegram, } from "react-icons/fa6";
+import {
+  FaDiscord,
+  FaGithub,
+  FaLinkedin,
+  FaX,
+  FaThreads,
+  FaInstagram,
+  FaXTwitter,
+  FaFacebook,
+  FaPinterest,
+  FaWhatsapp,
+  FaReddit,
+  FaTelegram,
+} from "react-icons/fa6";
 
 export const iconLibrary: Record<string, IconType> = {
   arrowUpRight: HiArrowUpRight,
@@ -64,6 +98,28 @@ export const iconLibrary: Record<string, IconType> = {
   reddit: FaReddit,
   telegram: FaTelegram,
   instagram: FaInstagram,
+  // Technical skills
+  python: SiPython,
+  pytorch: SiPytorch,
+  opencv: SiOpencv,
+  huggingface: SiHuggingface,
+  cplusplus: SiCplusplus,
+  r: SiR,
+  postgresql: SiPostgresql,
+  langchain: SiLangchain,
+  openai: SiOpenai,
+  elasticsearch: SiElasticsearch,
+  milvus: SiMilvus,
+  pydantic: SiPydantic,
+  react: SiReact,
+  vue: SiVuedotjs,
+  git: SiGit,
+  fastapi: SiFastapi,
+  django: SiDjango,
+  docker: SiDocker,
+  amazonwebservices: SiAmazonwebservices,
+  githubactions: SiGithubactions,
+  mysql: SiMysql,
 };
 
 export type IconLibrary = typeof iconLibrary;

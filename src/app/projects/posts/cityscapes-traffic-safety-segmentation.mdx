@@ -1,0 +1,180 @@
+---
+title: "Semantic Segmentation on Cityscapes"
+subtitle: "Comparing FCN-8s, U-Net, and DeepLabV3+ on safety-critical urban classes"
+summary: "PyTorch study on Cityscapes (3,475 fine-annotated images) with 8-class label remapping, comparing FCN-8s, U-Net, and DeepLabV3+ using mIoU and per-class IoU."
+image: "/images/projects/cityscapes/zuerich00.png"
+publishedAt: "2026-04-20"
+tag: "Computer Vision, Image Segmentation"
+---
+
+## Introduction
+
+This project studies semantic segmentation for traffic safety in urban scenes using the [Cityscapes](https://www.cityscapes-dataset.com/) benchmark. Original labels are remapped into eight classes for training, with focus on **road**, **sidewalk**, **human**, and **vehicle** for safety analysis.
+
+We implement and compare three models in **PyTorch**:
+
+- **FCN-8s** — fully convolutional baseline
+- **U-Net** — encoder–decoder with skip connections
+- **DeepLabV3+** — context-aware model with atrous (dilated) convolutions
+
+Models are trained under the same conditions and evaluated using **mean Intersection over Union (mIoU)** and **per-class IoU**.
+
+## Problem & dataset
+
+**Problem:** Predict which parts of a street scene are drivable, where pedestrians are, and where vehicles are—pixel by pixel—so downstream systems can reason about traffic safety.
+
+**Dataset:** Cityscapes provides high-resolution street-view images (1024 × 2048) with fine semantic masks. We use the finely annotated training split (**3,475 images**, 50 cities), pairing RGB images (`leftImg8bit`) with labels (`gtFine`).
+
+**Labels:** Original Cityscapes categories are merged into **8 classes** (road, sidewalk, human, vehicle, traffic objects, nature, construction, background) to simplify training while keeping safety-relevant structure.
+
+<Media
+  src="/images/projects/cityscapes/data_inspect.png"
+  alt="data inspection"
+  aspectRatio="2/1"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  Input images, remapped ground truth segmentation (8 classes), and corresponding boundary masks.
+</Text>
+
+### Data augmentation
+
+To improve generalization, we apply augmentations during training:
+
+- Random horizontal flipping
+- Color jittering
+- Random resized cropping
+- Normalization
+
+<Media
+  src="/images/projects/cityscapes/compose.png"
+  alt="Data augmentation"
+  aspectRatio="16/9"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  Examples of preprocessing and augmentation operations applied to training images.
+</Text>
+
+### Class imbalance
+
+The dataset is highly imbalanced: classes such as **human** and **traffic object** occupy only a small fraction of pixels, which can hurt performance on safety-critical categories.
+
+<Media
+  src="/images/projects/cityscapes/class_weight.png"
+  alt="class_weight_dist"
+  aspectRatio="32/10"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  Dampened inverse-frequency class weights used in training.
+</Text>
+
+## Methods
+
+All three architectures share the same training protocol (optimizer, learning rate schedule, input resolution policy, and epoch budget) so differences reflect model design rather than tuning imbalance.
+
+### FCN-8s
+
+Fully convolutional network that upsamples coarse predictions for dense segmentation—simple but limited in fine boundary detail.
+
+<Media
+  src="/images/projects/cityscapes/FCN8s_structure.png"
+  alt="FCN-8s architecture"
+  aspectRatio="16/9"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  FCN-8s model structure.
+</Text>
+
+### U-Net
+
+Encoder–decoder with skip connections to recover spatial detail, which often helps thin structures such as humans at a distance.
+
+<Media
+  src="/images/projects/cityscapes/Unet_structure.png"
+  alt="U-Net architecture"
+  aspectRatio="16/9"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  U-Net model structure.
+</Text>
+
+### DeepLabV3+
+
+Context-aware segmentation with atrous spatial pyramid pooling and a strong backbone—strong on large regions (road) and object boundaries (vehicles).
+
+<Media
+  src="/images/projects/cityscapes/deeplabv3.png"
+  alt="DeepLabV3+ architecture"
+  aspectRatio="16/9"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  DeepLabV3+ model structure.
+</Text>
+
+## Key takeaways
+
+- **FCN-8s** is a solid baseline, but downsampling limits boundary precision.
+- **U-Net** recovers finer detail via skip connections and improves over FCN-8s.
+- **DeepLabV3+** achieves the best validation accuracy and **mIoU**, combining ASPP multi-scale context with a strong decoder—best suited to urban scenes with both large regions and small objects.
+- L2 regularization, learning rate decay, and early stopping kept overfitting in check; train–val gaps stayed relatively stable (see training curves below).
+- **Human** and **traffic object** classes remain the hardest due to class imbalance and small, thin structures.
+
+<Media
+  src="/images/projects/cityscapes/training_curves.png"
+  alt="Training and validation curves for FCN-8s, U-Net, and DeepLabV3+"
+  aspectRatio="32/11"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  Training curves for all three models.
+</Text>
+
+## Limitations & future work
+
+**Limitations:** Higher resolution may help rare classes but costs more time and memory; aggressive rebalancing and augmentation did not consistently raise mIoU; evaluation used only the **8-class** remap (results may differ for full 19-class Cityscapes).
+
+**Future work:** Full-resolution training, transformer-based segmenters, lighter augmentation to avoid distribution shift, and targeted strategies for **human** and **traffic object** classes.
+
+## Project links
+
+<Row gap="12" wrap marginTop="8" marginBottom="32">
+  <Button
+    href="https://github.com/rxthlessbeats/Cityscapes-Image-Segmentation.git"
+    variant="secondary"
+    label="GitHub repository"
+    prefixIcon="github"
+    size="m"
+    arrowIcon
+  />
+  <Button
+    href="https://www.overleaf.com/read/jwqnzsbbhvxx#0ff0e6"
+    variant="secondary"
+    label="Paper (Overleaf)"
+    prefixIcon="document"
+    size="m"
+    arrowIcon
+  />
+</Row>
+
+## Index terms
+
+Semantic segmentation · Traffic safety · Urban scene understanding · U-Net · DeepLabV3+ · FCN-8s · Cityscapes dataset

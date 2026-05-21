@@ -1,11 +1,4 @@
-import { IconName } from "@/resources/icons";
-import { zones } from "tzdata";
-
-/**
- * IANA time zone string (e.g., 'Asia/Calcutta', 'Europe/Vienna').
- * See: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
- */
-export type IANATimeZone = Extract<keyof typeof zones, string>; // Narrow to string keys for React usage
+import type { IconName } from "@/resources/icons";
 
 /**
  * Represents a person featured in the portfolio.
@@ -23,8 +16,8 @@ export type Person = {
   avatar: string;
   /** Email address */
   email: string;
-  /** IANA time zone location */
-  location: IANATimeZone;
+  /** Location label shown on the About page (e.g. "Los Angeles, CA") */
+  location?: string;
   /** Languages spoken */
   languages?: string[];
 };
@@ -175,8 +168,19 @@ export interface About extends BasePageConfig {
     institutions: Array<{
       /** Institution name */
       name: string;
-      /** Description of studies */
-      description: React.ReactNode;
+      /** Timeframe of study */
+      timeframe: string;
+      /** Degree or program */
+      department: string;
+      /** Highlights, coursework, or achievements */
+      achievements: React.ReactNode[];
+      /** Images related to the institution */
+      images?: Array<{
+        src: string;
+        alt: string;
+        width: number;
+        height: number;
+      }>;
     }>;
   };
   /** Technical skills section */
@@ -194,7 +198,7 @@ export interface About extends BasePageConfig {
       /** Skill tags */
       tags?: Array<{
         name: string;
-        icon?: string;
+        icon?: IconName;
       }>;
       /** Images related to the skill */
       images?: Array<{
@@ -212,29 +216,19 @@ export interface About extends BasePageConfig {
 }
 
 /**
- * Blog page configuration.
- * @description Configuration for the Blog page, including metadata and navigation label.
+ * Projects page configuration (MDX posts listing).
+ * @description Configuration for the Projects page, including metadata and navigation label.
  */
-export interface Blog extends BasePageConfig {}
+export interface Projects extends BasePageConfig {}
+
+/**
+ * Publications page configuration (MDX posts listing).
+ * @description Configuration for the Publications page, including metadata and navigation label.
+ */
+export interface Publications extends BasePageConfig {}
 
 /**
  * Work/projects page configuration.
  * @description Configuration for the Work/Projects page, including metadata and navigation label.
  */
 export interface Work extends BasePageConfig {}
-
-/**
- * Gallery page configuration.
- * @description Configuration for the Gallery page, including metadata, navigation label, and image list.
- */
-export interface Gallery extends BasePageConfig {
-  /** List of images in the gallery */
-  images: Array<{
-    /** Image source path */
-    src: string;
-    /** Image alt text */
-    alt: string;
-    /** Image orientation (horizontal/vertical) */
-    orientation: string;
-  }>;
-}

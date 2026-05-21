@@ -94,14 +94,16 @@ export default function About() {
             horizontal="center"
           >
             <Avatar src={person.avatar} size="xl" />
-            <Row gap="8" vertical="center">
-              <Icon onBackground="accent-weak" name="globe" />
-              {person.location}
-            </Row>
+            {person.location && (
+              <Row gap="8" vertical="center">
+                <Icon onBackground="accent-weak" name="globe" />
+                {person.location}
+              </Row>
+            )}
             {person.languages && person.languages.length > 0 && (
               <Row wrap gap="8">
-                {person.languages.map((language, index) => (
-                  <Tag key={index} size="l">
+                {person.languages.map((language) => (
+                  <Tag key={language} size="l" radius="full">
                     {language}
                   </Tag>
                 ))}
@@ -164,10 +166,8 @@ export default function About() {
                 data-border="rounded"
               >
                 {social
-                      .filter((item) => item.essential)
-                      .map(
-                  (item) =>
-                    item.link && (
+                  .filter((item) => item.essential && item.link)
+                  .map((item) => (
                       <React.Fragment key={item.name}>
                         <Row s={{ hide: true }}>
                           <Button
@@ -190,8 +190,7 @@ export default function About() {
                           />
                         </Row>
                       </React.Fragment>
-                    ),
-                )}
+                  ))}
               </Row>
             )}
           </Column>
@@ -236,9 +235,9 @@ export default function About() {
                     </Column>
                     {experience.images && experience.images.length > 0 && (
                       <Row fillWidth paddingTop="m" paddingLeft="40" gap="12" wrap>
-                        {experience.images.map((image, index) => (
+                        {experience.images.map((image, imageIndex) => (
                           <Row
-                            key={index}
+                            key={`${experience.company}-${image.src}-${imageIndex}`}
                             border="neutral-medium"
                             radius="m"
                             minWidth={image.width}
@@ -268,13 +267,34 @@ export default function About() {
               </Heading>
               <Column fillWidth gap="l" marginBottom="40">
                 {about.studies.institutions.map((institution, index) => (
-                  <Column key={`${institution.name}-${index}`} fillWidth gap="4">
-                    <Text id={institution.name} variant="heading-strong-l">
-                      {institution.name}
+                  <Column
+                    key={`${institution.name}-${institution.department}-${index}`}
+                    fillWidth
+                  >
+                    <Row fillWidth horizontal="between" vertical="end" marginBottom="4">
+                      <Text id={institution.name} variant="heading-strong-l">
+                        {institution.name}
+                      </Text>
+                      <Text variant="heading-default-xs" onBackground="neutral-weak">
+                        {institution.timeframe}
+                      </Text>
+                    </Row>
+                    <Text variant="body-default-s" onBackground="brand-weak" marginBottom="m">
+                      {institution.department}
                     </Text>
-                    <Text variant="heading-default-xs" onBackground="neutral-weak">
-                      {institution.description}
-                    </Text>
+                    <Column as="ul" gap="16">
+                      {institution.achievements.map(
+                        (achievement: React.ReactNode, achievementIndex: number) => (
+                          <Text
+                            as="li"
+                            variant="body-default-m"
+                            key={`${institution.name}-${achievementIndex}`}
+                          >
+                            {achievement}
+                          </Text>
+                        ),
+                      )}
+                    </Column>
                   </Column>
                 ))}
               </Column>
@@ -293,7 +313,7 @@ export default function About() {
               </Heading>
               <Column fillWidth gap="l">
                 {about.technical.skills.map((skill, index) => (
-                  <Column key={`${skill}-${index}`} fillWidth gap="4">
+                  <Column key={`${skill.title}-${index}`} fillWidth gap="4">
                     <Text id={skill.title} variant="heading-strong-l">
                       {skill.title}
                     </Text>
@@ -302,8 +322,13 @@ export default function About() {
                     </Text>
                     {skill.tags && skill.tags.length > 0 && (
                       <Row wrap gap="8" paddingTop="8">
-                        {skill.tags.map((tag, tagIndex) => (
-                          <Tag key={`${skill.title}-${tagIndex}`} size="l" prefixIcon={tag.icon}>
+                        {skill.tags.map((tag) => (
+                          <Tag
+                            key={`${skill.title}-${tag.name}`}
+                            size="l"
+                            radius="full"
+                            prefixIcon={tag.icon}
+                          >
                             {tag.name}
                           </Tag>
                         ))}
@@ -311,9 +336,9 @@ export default function About() {
                     )}
                     {skill.images && skill.images.length > 0 && (
                       <Row fillWidth paddingTop="m" gap="12" wrap>
-                        {skill.images.map((image, index) => (
+                        {skill.images.map((image, imageIndex) => (
                           <Row
-                            key={index}
+                            key={`${skill.title}-${image.src}-${imageIndex}`}
                             border="neutral-medium"
                             radius="m"
                             minWidth={image.width}
