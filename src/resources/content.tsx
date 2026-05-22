@@ -44,8 +44,8 @@ const home: Home = {
   image: "/images/og/thumbnail.png",
   label: "Home",
   title: `${person.name}'s Portfolio`,
-  description: `Portfolio showcasing ML, agentic AI, and full-stack work by ${person.name}`,
-  headline: <>Building intelligent systems with ML and agentic AI</>,
+  description: `Portfolio showcasing ML/DL, Agentic AI, Quant Trading and full-stack work by ${person.name}`,
+  headline: <>Learn deep. Build wide.</>,
   featured: {
     display: true,
     title: (
@@ -64,7 +64,7 @@ const home: Home = {
       <Text as="span" size="xl" weight="strong">
         USC
       </Text>
-      . I build machine learning and deep learning models, LLM agent systems and production full-stack platforms.
+      . Experienced in machine learning, deep learning, agentic AI, quant trading, and full-stack development.
     </Text>
   ),
 };

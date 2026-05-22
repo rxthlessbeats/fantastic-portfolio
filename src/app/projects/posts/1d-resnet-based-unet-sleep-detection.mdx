@@ -1,0 +1,105 @@
+---
+title: "1D ResNet-UNet for Sleep State Detection"
+subtitle: "Two-stage pipeline for the Child Mind Institute sleep-events"
+summary: "PyTorch 1D U-Net with ResNet-style blocks and squeeze-excitation layers predicts per-minute sleep scores from wrist accelerometry; NNI tunes the CNN, then a tabular stage-2 model refines onset and wakeup events."
+image: "/images/projects/sleep_state/sleep_state.png"
+publishedAt: "2024-02-18"
+tag: "Time Series, Deep Learning"
+---
+
+## Introduction
+
+This project targets **[Child Mind Institute — Detect Sleep States](https://www.kaggle.com/competitions/child-mind-institute-detect-sleep-states)** on Kaggle: given wrist **accelerometer** traces, predict when a subject **falls asleep (onset)** and **wakes up (wakeup)** each night. The solution is a **two-stage** pipeline—first a **1D U-Net** with **ResNet-style residual blocks** and **squeeze-and-excitation (SE)** attention, then a **gradient-boosted tabular model** that consumes CNN outputs plus hand-crafted time-series features.
+
+## Problem & data
+
+**Task:** For each recording (`series_id`), localize **onset** and **wakeup** events across many nights. Labels come from `train_events.csv` (event type, step index, timestamp). Models are scored with **RMSE** on predicted event timing in competition space.
+
+**Inputs (stage 1):** Preprocessed nightly windows stored as `X_array.npy` with shape **(nights, 3, 21600)**—three accelerometer channels over a fixed-length window. Targets are **per-minute** vectors (**1440** steps per night), aligned with validity masks for missing segments.
+
+**Key constraints:**
+
+- **GroupKFold** by `series_id` so the same subject never appears in both train and validation folds
+- Heavy class imbalance and irregular missing spans in long nights
+- Event peaks must be recovered from smooth per-minute score curves (post-processing with peak finding in stage 2)
+
+## Stage 1: 1D ResNet-UNet
+
+The core network **`UNet1d`** is a encoder–decoder for 1D sequences:
+
+- **Stem:** depthwise-grouped `Conv1d` → batch norm → ReLU on raw 3-channel input
+- **Encoder:** stacked downsample blocks; each block uses strided convolutions plus **`res_depth`** **`ResBlock`** modules (two conv layers + **SEBlock** channel reweighting)
+- **Skip connections:** at each scale, encoder features are concatenated with **average-pooled** copies of the original input (multi-scale fusion of raw motion + learned features)
+- **Decoder:** linear upsampling + skip concatenation + conv refinement
+- **Head:** 1×1-style conv maps to a **per-minute** score; boundary cropping (`180:-180`) matches train/valid tensor shapes
+
+Training uses **MSE** on masked targets, **early stopping**, and a custom **cosine annealing warm-restart** scheduler with per-restart LR decay. **Microsoft NNI** searches `initial_channels_num`, learning rate, and batch size (`search_space.json`).
+
+<Table
+  data={{
+    headers: [
+      { content: "Component", key: "component" },
+      { content: "Role", key: "role" },
+    ],
+    rows: [
+      ["ResBlock + SE", "Deep feature extraction with channel attention"],
+      ["Strided encoder", "Multi-scale temporal context down to coarse resolution"],
+      ["Skip + avg-pool branches", "Preserve fine motion cues from raw accelerometry"],
+      ["GroupKFold (10 folds)", "Subject-level generalization"],
+      ["NNI HPO", "Tune width, LR, and batch size"],
+    ],
+  }}
+/>
+
+Representative architecture sizes (from `torchinfo`):
+
+- Input: `[batch, 3, 21600]`
+- Output: `[batch, 1440]` per-minute predictions
+
+## Stage 2: Tabular refinement
+
+Stage-1 **OOF predictions** and intermediate scores are merged into a wide feature table (`make_dataset.ipynb`, `make_dataset_2ndstage.ipynb`). Engineered signals include:
+
+- Multi-threshold score peaks and **sleep-phase** transforms (`daily_step_sleep`, peak distances)
+- Context windows before/after predicted switches (6 / 12 / 30 / 60 minute horizons)
+- **LightGBM** (and related notebooks) with grouped CV, optimizing the same **RMSE** metric
+
+This second stage corrects systematic CNN biases and sharpens event localization using domain-specific temporal features.
+
+## Workflow
+
+1. **EDA & cleaning** — `EDA/cmi.ipynb`, `cmi-cleaning-eda-visualizations.ipynb` on Polars/Pandas event tables  
+2. **Dataset build** — pivot minute-level targets, validity flags, serialized `X_array.npy`  
+3. **UNet training** — `unet/unet.ipynb`, productionized `unet/unet_nni.py` with NNI trials  
+4. **Stage-2 features & boosting** — `stage2model.ipynb`, `unet/stage2model.ipynb`  
+5. **Submission** — `submission.csv`, `stage2pred.csv`
+
+## Results & takeaways
+
+- The **1D U-Net + ResNet blocks** capture long-range nightly dynamics while SE gates emphasize informative frequency bands in accelerometry.
+- **Subject-grouped CV** is essential; random night splits inflate scores.
+- **Two-stage stacking** materially improves event timing versus the CNN alone—tabular models exploit peak structure and prior-night statistics that are awkward to learn end-to-end in one conv net.
+- **NNI** gives reproducible gains over hand-picked channel widths and learning rates.
+
+## Limitations & future work
+
+**Limitations:** Precomputed arrays tie the pipeline to a fixed window length; inference depends on careful peak post-processing; full competition data are not redistributed in the public repo (notebooks expect Kaggle-style paths).
+
+**Future work:** End-to-end event loss (direct onset/wakeup classification), lighter models for edge deployment, and transformer or state-space alternatives to the U-Net encoder for very long sequences.
+
+## Project links
+
+<Row gap="12" wrap marginTop="8" marginBottom="32">
+  <Button
+    href="https://github.com/rxthlessbeats/1d-resnet-based-unet-sleep-detection"
+    variant="secondary"
+    label="GitHub repository"
+    prefixIcon="github"
+    size="m"
+    arrowIcon
+  />
+</Row>
+
+## Index terms
+
+Sleep state detection · 1D U-Net · ResNet · Squeeze-and-excitation · Accelerometry · Time series · GroupKFold · NNI · LightGBM · Child Mind Institute

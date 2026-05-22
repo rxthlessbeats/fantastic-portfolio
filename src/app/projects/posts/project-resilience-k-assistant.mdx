@@ -1,0 +1,140 @@
+---
+title: "ResiDemy: Agentic AI Knowledge Management System"
+subtitle: "Multi-agent RAG tutoring platform for service-science learners"
+summary: "Full-stack educational assistant for Resilience Academy: Streamlit chat UI, Django API with per-user LanceDB retrieval, Microsoft AutoGen specialist agents, and LINE-integrated document and community workflows."
+image: "/images/projects/residemy/residemy_thumbnail.png"
+publishedAt: "2024-08-01"
+tag: "LLM Applications, Multi-Agent Systems, RAG"
+---
+
+## Introduction
+
+**ResiDemy** in the UI is a knowledge-management tutoring platform, receive guided responses grounded in their own document corpus—not generic chatbot answers.
+
+The system couples a **Streamlit** frontend, a **Django 4.2** REST/CMS backend, **OpenAI** embeddings and completions, **Microsoft AutoGen** multi-agent orchestration, and **LanceDB** vector search with **per-user** knowledge stores.
+
+## Problem & users
+
+**Goal:** Help graduate students explore assigned papers and community knowledge objects through conversational guidance—summaries, comprehension checks, document Q&A, and structured learning activities—while preserving instructor-curated content and user-specific uploads.
+
+**Primary users:**
+
+- Students in service-science coursework who need scaffolded reading support
+- Community members sharing articles via **LINE** messaging integration
+- Administrators managing CMS content, personas, and broadcast workflows
+
+## Architecture
+
+<Media
+  src="/images/projects/residemy/residemy_architecture.png"
+  alt="ResiDemy system architecture: Streamlit frontend, Django API, AutoGen agents, and per-user LanceDB retrieval"
+  aspectRatio="16/9"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  ResiDemy architecture: Streamlit frontend, Django API, AutoGen agents, and per-user LanceDB retrieval.
+</Text>
+
+**Frontend (`Residemy/`):** Multi-page Streamlit app—assistant chat, document upload/Q&A, file Q&A, community hub, admin tools—with **LINE OAuth** login, local session storage, and optional audio input.
+
+**Backend (`backend/`):** Django models for `User` (LINE profile), `Document`, `UserDocument`, `UserChatLog`, `AgentPersona`, and `UserActivityList`. APIs expose chat logging, persona generation, activity todos, and the **`simple_rag`** endpoint.
+
+## Multi-agent design
+
+Conversation routing uses **pyautogen** `GroupChat` with role-specialized agents (prompts in `residemy_prompts.py`):
+
+<Table
+  data={{
+    headers: [
+      { content: "Agent", key: "agent" },
+      { content: "Role", key: "role" },
+    ],
+    rows: [
+      ["NLU", "Classifies user intent against a job schema (document tasks, self-intro, general Q&A, persona setup, opening messages)"],
+      ["NLR", "Natural-language reasoning—guides interest and comprehension against course goals and conditions"],
+      ["KDS", "Knowledge delivery specialist; coordinates retrieval and document-centric tasks"],
+      ["Intro / Doc / KMN", "Document introduction, upload/list/ask flows, and knowledge-management navigation"],
+      ["NLG", "Final response generation in Chinese, preserving structure and tone from retrieved context"],
+    ],
+  }}
+/>
+
+A **`RetrieveUserProxyAgent`** bridges AutoGen tool calls to the Django **`simple_rag`** API so agents query the correct LanceDB tables for each user.
+
+## Retrieval (RAG)
+
+**Vector store:** LanceDB under `userdbs/{user_id}/lancedb` with tables:
+
+- `KnowledgeObject_table` — community / curated knowledge objects
+- `Research_paper_table` — user-uploaded research PDFs
+
+**Embeddings:** OpenAI `text-embedding-3-small` with **cosine** similarity search; optional metadata **prefilter** via `where` clauses on structured fields.
+
+**Ingestion:** PDF text via **PyMuPDF**; video pipelines use **OpenCV** / **moviepy** for frame and transcript workflows; responses and summaries are logged to `UserChatLog` for continuity across sessions.
+
+## Platform features
+
+- **Document lifecycle** — upload, list, intro summaries, targeted Q&A, and activity-plan revisions
+- **Agent personas** — GPT-generated tutor personalities from uploaded material metadata
+- **Activity lists** — structured todo-style learning steps tied to documents
+- **LINE integration** — OAuth identity, messaging hooks for sharing articles into the community corpus
+- **Django CMS** — editorial content and static assets alongside the API
+
+## Tech stack
+
+<Table
+  data={{
+    headers: [
+      { content: "Layer", key: "layer" },
+      { content: "Technologies", key: "tech" },
+    ],
+    rows: [
+      ["UI", "Streamlit, streamlit-shadcn-ui, streamlit-oauth"],
+      ["API", "Django 4.2, Django REST patterns, django-cms"],
+      ["Agents", "pyautogen 0.2.x, OpenAI GPT + embeddings"],
+      ["Retrieval", "LanceDB, pandas/Arrow schemas"],
+      ["Auth & social", "LINE Login SDK, LINE Bot SDK"],
+      ["Media", "PyMuPDF, OpenCV, moviepy"],
+    ],
+  }}
+/>
+
+## Key takeaways
+
+- **Intent routing + specialist agents** scale better than a single monolithic prompt for document-heavy tutoring workflows.
+- **Per-user LanceDB** isolates corpora while sharing the same retrieval API and agent toolchain.
+- **Bilingual pedagogy** (Traditional Chinese outputs, English/Chinese source papers) is enforced in NLG and document-summary prompts.
+- **LINE** lowers friction for a Taiwan-based learning community to push readings into the shared knowledge base.
+
+## Limitations & future work
+
+**Limitations:** Tight coupling between Streamlit session state and backend URLs; AutoGen group latency on multi-hop agent turns; operational cost of embedding every upload at scale.
+
+**Future work:** Unified auth/session layer, agent trace UI for instructors, evaluation harness for retrieval quality, and hardened deployment (containerized API + managed vector DB).
+
+## Project links
+
+<Row gap="12" wrap marginTop="8" marginBottom="32">
+  <Button
+    href="https://github.com/rxthlessbeats/residemy-frontend"
+    variant="secondary"
+    label="GitHub repository (FE)"
+    prefixIcon="github"
+    size="m"
+    arrowIcon
+  />
+  <Button
+    href="https://github.com/rxthlessbeats/residemy-backend"
+    variant="secondary"
+    label="GitHub repository (BE)"
+    prefixIcon="github"
+    size="m"
+    arrowIcon
+  />
+</Row>
+
+## Index terms
+
+Educational AI · Multi-agent systems · RAG · LanceDB · AutoGen · Streamlit · Django · LINE Login · Knowledge management · Service science · Resilience Academy · Traditional Chinese NLP
