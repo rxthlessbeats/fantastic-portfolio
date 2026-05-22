@@ -13,12 +13,14 @@ import {
   Media,
   Line,
 } from "@once-ui-system/core";
-import { baseURL, about, person, publications } from "@/resources";
+import { baseURL, about, home, person, publications } from "@/resources";
 import { formatDate } from "@/utils/formatDate";
 import { getPosts } from "@/utils/utils";
 import { Metadata } from "next";
 import { Posts } from "@/components/publications/Posts";
 import { ShareSection } from "@/components/publications/ShareSection";
+
+export const dynamic = "force-static";
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const posts = getPosts(["src", "app", "publications", "posts"]);
@@ -46,7 +48,7 @@ export async function generateMetadata({
     title: post.metadata.title,
     description: post.metadata.summary,
     baseURL: baseURL,
-    image: post.metadata.image || `/api/og/generate?title=${post.metadata.title}`,
+    image: post.metadata.image || home.image,
     path: `${publications.path}/${post.slug}`,
   });
 }
@@ -84,7 +86,7 @@ export default async function PublicationPost({
             dateModified={post.metadata.publishedAt}
             image={
               post.metadata.image ||
-              `/api/og/generate?title=${encodeURIComponent(post.metadata.title)}`
+              post.metadata.image || home.image
             }
             author={{
               name: person.name,

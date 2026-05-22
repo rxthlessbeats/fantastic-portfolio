@@ -1,14 +1,14 @@
 import { Column, Heading, Meta, Schema } from "@once-ui-system/core";
 import { Mailchimp } from "@/components";
 import { Posts } from "@/components/projects/Posts";
-import { baseURL, person, projects } from "@/resources";
+import { baseURL, home, person, projects } from "@/resources";
 
 export async function generateMetadata() {
   return Meta.generate({
     title: projects.title,
     description: projects.description,
     baseURL: baseURL,
-    image: `/api/og/generate?title=${encodeURIComponent(projects.title)}`,
+    image: home.image,
     path: projects.path,
   });
 }
@@ -22,7 +22,7 @@ export default function ProjectsPage() {
         title={projects.title}
         description={projects.description}
         path={projects.path}
-        image={`/api/og/generate?title=${encodeURIComponent(projects.title)}`}
+        image={home.image}
         author={{
           name: person.name,
           url: `${baseURL}${projects.path}`,

@@ -1,0 +1,41 @@
+@use "./breakpoints.scss" as breakpoints;
+
+.navTrack {
+  position: relative;
+}
+
+.indicator {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: var(--radius-m);
+  background-color: var(--neutral-alpha-medium);
+  border: 1px solid var(--neutral-alpha-weak);
+  pointer-events: none;
+  z-index: 0;
+  transition:
+    left 0.25s ease,
+    width 0.25s ease,
+    opacity 0.15s ease;
+}
+
+.navLink {
+  position: relative;
+  z-index: 1;
+}
+
+.indicator.instant {
+  transition: none;
+}
+
+@media (max-width: breakpoints.$s) {
+  .navLink :global(.font-label) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator {
+    transition: none;
+  }
+}

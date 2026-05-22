@@ -1,0 +1,7 @@
+{
+  "redirects": [
+    { "source": "/blog", "destination": "/projects", "permanent": true },
+    { "source": "/blog/:slug", "destination": "/projects/:slug", "permanent": true },
+    { "source": "/gallery", "destination": "/publications", "permanent": true }
+  ]
+}

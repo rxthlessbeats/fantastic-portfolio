@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { routes, protectedRoutes } from "@/resources";
 import { Flex, Spinner, Button, Heading, Column, PasswordInput } from "@once-ui-system/core";
 import NotFound from "@/app/not-found";
+import { PageFadeIn } from "@/components/motion/PageFadeIn";
 
 interface RouteGuardProps {
   children: React.ReactNode;
@@ -108,7 +109,11 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     );
   }
 
-  return <>{children}</>;
+  if (pathname === "/") {
+    return <>{children}</>;
+  }
+
+  return <PageFadeIn>{children}</PageFadeIn>;
 };
 
 export { RouteGuard };

@@ -16,6 +16,8 @@ import {
 import { Footer, Header, RouteGuard, Providers } from "@/components";
 import { baseURL, effects, fonts, style, dataStyle, home } from "@/resources";
 
+export const dynamic = "force-static";
+
 export async function generateMetadata() {
   return Meta.generate({
     title: home.title,
