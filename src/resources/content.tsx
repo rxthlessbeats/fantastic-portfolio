@@ -90,10 +90,8 @@ const about: About = {
     title: "Introduction",
     description: (
       <>
-        A USC graduate student whose work focuses on applying machine learning and deep learning 
-        to computer vision, natural language processing, and quantitative trading. 
-        I have also worked on multi-agent LLM workflows and RAG systems, 
-        and I am interested in building practical AI-driven systems that combine research, 
+        A USC graduate student whose work focuses on machine learning, natural language processing, 
+        and Agentic AI. Experienced in building practical AI-driven systems that combine research, 
         software engineering, and real-world applications.
       </>
     ),
@@ -103,9 +101,32 @@ const about: About = {
     title: "Work Experience",
     experiences: [
       {
+        company: "Synopsys Inc.",
+        timeframe: "Jul 2026 – Aug 2026",
+        role: "Agentic AI R&D Intern",
+        achievements: [
+          <>
+            Architected an end-to-end swarm-graph multi-agent langgraph workflow and evaluation 
+            harness for autonomously resolving 500+ real world Jira issues across 5M+ lines of production code. 
+          </>,
+          <>
+            Achieved 1000% token cost optimization and 200% faster execution compared with a Cursor Skills-based solution. 
+          </>,
+          <>
+            Designed Chain-of-Nudge, an agent-control strategy combining iterative guidance and 
+            state management to anti-divergence and improve 20% accuracy across 3 different benchmarks.
+          </>,
+          <>
+            Built a production inference serving stack for three LLMs using vLLM, managing model deployment, 
+            GPU resource allocation, and API integration on NVIDIA A100 SXM GPUs.
+          </>,
+        ],
+        images: [],
+      },
+      {
         company: "MediaTek Inc.",
         timeframe: "Oct 2024 – Feb 2025",
-        role: "LLM-Based Agentic System Developer",
+        role: "Agentic AI R&D Intern",
         achievements: [
           <>
             Researched and built an LLM-based agent system with AutoGen for robust SPICE code
