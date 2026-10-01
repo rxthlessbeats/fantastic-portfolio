@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    { "source": "/open-source", "destination": "/open-sources", "permanent": true },
+    { "source": "/blog", "destination": "/work", "permanent": false },
+    { "source": "/blog/:slug", "destination": "/work/:slug", "permanent": true },
+    { "source": "/gallery", "destination": "/#work", "permanent": false },
+    { "source": "/projects/:slug", "destination": "/work/:slug", "permanent": true },
+    { "source": "/publications/:slug", "destination": "/work/:slug", "permanent": true }
+  ]
+}

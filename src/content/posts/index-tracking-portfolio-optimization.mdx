@@ -1,0 +1,103 @@
+---
+title: "Index Tracking with Least Squares and Quadratic Programming"
+subtitle: "Sparse benchmark replication on S&P 500 stocks and S&P strategy indices"
+summary: "Jupyter pipelines estimate portfolio weights that track a target index from a reduced set of constituents—comparing unconstrained least squares with four cvxopt QP formulations (fully invested, long-only, and capped weights)."
+publishedAt: "2023-06-01"
+tag: "Quantitative Finance, Optimization"
+---
+
+## Introduction
+
+**Index tracking** (passive management) builds a portfolio whose returns closely follow a benchmark index—often with **fewer holdings** than the full index to cut turnover and implementation cost. This project implements that replication problem in Python: given historical prices of a **target** series and **candidate** assets, solve for weights that minimize return mismatch, then rebuild a synthetic price path and score tracking quality.
+
+The repo ships three notebooks—**`Index_tracking.ipynb`** (S&P strategy indices), **`Index_tracking2.ipynb`** (S&P 500 vs. ten large-cap stocks via **yfinance**), and **`Index_tracking3.ipynb`** (extended evaluation with risk metrics)—all sharing the same optimization core.
+
+## Problem & data
+
+**Goal:** For a chosen benchmark column `number`, express its log-returns as a linear combination of the other assets’ log-returns. Reconstruct NAV from the weighted synthetic return series and compare against the actual benchmark price.
+
+**Return construction:** Daily **log₁₀ returns** from adjusted close prices; the last row is dropped after differencing. Synthetic levels compound via `10^tracking_return`.
+
+**Two experimental setups:**
+
+<Table
+  data={{
+    headers: [
+      { content: "Notebook", key: "nb" },
+      { content: "Target (benchmark)", key: "target" },
+      { content: "Constituents (10 assets)", key: "const" },
+    ],
+    rows: [
+      ["Index_tracking2.ipynb", "S&P 500 (^GSPC)", "AAPL, MSFT, AMZN, JNJ, JPM, PG, XOM, DIS, V, KO (yfinance)"],
+      ["Index_tracking.ipynb / Index_tracking3.ipynb", "Each of 11 S&P strategy indices in turn", "The other 10 indices (e.g. SPXESFUT, SPXESUP, SPXETCT variants, SPXELSUP, SPRESUP, SPMESUP, SPSESUP, S&P US LargeMidCap ESG)"],
+    ],
+  }}
+/>
+
+## Optimization methods
+
+Both approaches minimize mismatch between benchmark returns **r** and weighted constituent returns **Xw**. **Least squares (`ls`)** uses the closed-form normal equation with no constraints. **Quadratic programming (`qp1`–`qp4`)** solves the equivalent problem with **cvxopt** `solvers.qp`, adding realistic portfolio constraints:
+
+<Table
+  data={{
+    headers: [
+      { content: "Method", key: "method" },
+      { content: "Constraints on weights w", key: "constraints" },
+    ],
+    rows: [
+      ["ls", "None (weights can be negative or unbounded)"],
+      ["qp1", "Unconstrained QP (same objective as LS, solver-based)"],
+      ["qp2", "Fully invested: sum(w) = 1"],
+      ["qp3", "Long-only portfolio: w ≥ 0, sum(w) = 1"],
+      ["qp4", "Long-only, fully invested, each wᵢ ≤ 0.5 (concentration cap)"],
+    ],
+  }}
+/>
+
+**Typical usage:** `Index_tracking2` and `Index_tracking3` default to **`qp4`** for investable, diversified weights; `Index_tracking.ipynb` illustrates **`qp3`**.
+
+## Evaluation
+
+After solving for **w**, `tracking_price` rebuilds the synthetic fund level. Reported metrics include:
+
+- **Goodness of fit:** R², tracking difference (mean), tracking error (std), L2 norm, MAE, MSE on price paths
+- **Risk analytics** (`Index_tracking3.ipynb`): annualized return and volatility, **Sharpe** and **Sortino** ratios, maximum drawdown, **Jensen’s alpha** vs. the benchmark
+
+Example output on one S&P strategy index run (qp4): R² ≈ **0.57**, Sharpe ≈ **0.85** (1% risk-free rate)—illustrating that a 10-asset basket can approximate but not perfectly replicate a specialized index.
+
+## Pipeline
+
+1. Load price panel (CSV for fund indices; **yfinance** for ^GSPC and mega-caps).
+2. Select target column; build `fund_return` and `index_return` matrices.
+3. Solve **ls** or **qp1–qp4** for optimal weights.
+4. Compound synthetic returns → compare NAV and return series (matplotlib).
+5. Print tracking errors and, in notebook 3, portfolio risk statistics.
+
+## Key takeaways
+
+- **QP with long-only and weight caps** yields implementable portfolios; unconstrained LS can imply shorting and extreme leverage.
+- **Sparse replication** (10 names vs. full index) trades tracking error for simplicity—R² and tracking error quantify that trade-off.
+- The same code generalizes from **single stocks** tracking the S&P 500 to **fund-of-funds-style** tracking among correlated S&P sub-indices.
+
+## Limitations & future work
+
+**Limitations:** Static weights over the full sample (no rolling re-estimation or transaction costs); log-base-10 returns are unconventional vs. natural log; README performance section is a placeholder.
+
+**Future work:** Rolling-window refits, turnover penalties, and out-of-sample validation across multiple target indices in a single report table.
+
+## Project links
+
+<Row gap="12" wrap marginTop="8" marginBottom="32">
+  <Button
+    href="https://github.com/rxthlessbeats/Index-tracking"
+    variant="secondary"
+    label="GitHub repository"
+    prefixIcon="github"
+    size="m"
+    arrowIcon
+  />
+</Row>
+
+## Index terms
+
+Index tracking · Portfolio optimization · Quadratic programming · Least squares · cvxopt · S&P 500 · Passive management · Tracking error · Sharpe ratio · Quantitative finance

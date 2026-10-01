@@ -1,0 +1,110 @@
+---
+title: "MenTeR: A Fully-Automated Multi-Agent Workflow for End-to-End RF/Analog Circuits Netlist Design"
+subtitle: "IEEE ICLAD 2025 — LLM agents for specification reasoning, optimization, and netlist generation"
+summary: "Multi-agent system that automates RF/analog schematic design from specs to netlists using Chain-of-Stage reasoning and diagram-aware RAG, with optional human checkpoints."
+image: "/images/publications/menter/fig_1.png"
+publishedAt: "2025-05-28"
+tag: "IEEE ICLAD 2025, Agentic AI"
+---
+
+## Introduction
+
+**MenTeR** (Multi-agenT workflow for end-to-end RF/Analog circuits **Netlist** design) targets a bottleneck in analog IC development: flows that are slow, expert-driven, and heavy on trial-and-error. The system uses **specialized LLM agents** that collaborate on specification understanding, circuit optimization, testbench generation, and schematic/netlist output—reducing manual iteration while expanding design-space exploration.
+
+Published at **[IEEE ICLAD 2025](https://ieeexplore.ieee.org/abstract/document/11105933/)** ([arXiv:2505.22990](https://arxiv.org/abs/2505.22990)). Authors include researchers from **MediaTek** and **MediaTek Technology** (Purdue-affiliated).
+
+## Problem
+
+RF/analog design bridges digital systems and physical signals, but netlist and schematic work still depends on deep designer intuition. Prior LLM work often stops at simplified benchmarks or single-block amplifiers; industrial flows need **scalable**, **validated** automation from specs through testbenches to netlists—including multi-block and, eventually, system-level targets (e.g. bandgap references, PLLs).
+
+## Methods
+
+MenTeR is an **end-to-end multi-agent workflow** with interactive checkpoints where engineers can intervene.
+
+### Multi-agent workflow
+
+Three specialized agents divide the design flow:
+
+- **PI agent** — specification and parameter-intent reasoning from documents and user goals.
+- **Circuit agent** — topology, sizing, and netlist/schematic generation.
+- **Testbench agent** — simulation setup and validation loops before sign-off.
+
+<Media
+  src="/images/publications/menter/fig_3.png"
+  alt="PI agent, circuit agent, and testbench agent overview"
+  aspectRatio="16/14"
+  radius="l"
+  sizes="(min-width: 768px) 800px, 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  PI, circuit, and testbench agents in the MenTeR workflow.
+</Text>
+
+### Diagram-Aware RAG
+
+**DA-RAG** retrieves schematic- and diagram-aware context (not text-only chunks) so LLMs ground decisions in visual circuit structure and domain layouts.
+
+<Media
+  src="/images/publications/menter/fig_5.png"
+  alt="Diagram-Aware Retrieval-Augmented Generation overview"
+  aspectRatio="32/9"
+  radius="l"
+  sizes="(min-width: 768px) 100vw"
+/>
+
+<Text variant="body-default-s" onBackground="neutral-weak" align="center" marginBottom="24">
+  Diagram-Aware RAG (DA-RAG) architecture.
+</Text>
+
+**Chain-of-Stage (CoS)** adds domain-specific staged reasoning (building on chain-of-thought) without large proprietary fine-tuning datasets. Together with DA-RAG, these pieces support scalable flow from single-block designs toward multi-block and system-level targets.
+
+Compared with a single monolithic agent, the multi-agent layout mirrors how analog teams divide roles and keeps failures localized to stages.
+
+## Contributions
+
+- First reported **fully automated multi-agent** framework for **end-to-end RF/analog netlist** generation with LLMs (single-block → multi-block → system-level roadmap).
+- **DA-RAG** and self-referential techniques to strengthen testbench writing and cut engineer intervention.
+- **CoS agent** combining analog domain knowledge with staged CoT-style reasoning.
+
+Experiments emphasize **real-world analog systems**, faster design cycles, and broader search over topologies and parameters than manual-only flows.
+
+## Key takeaways
+
+- MenTeR frames analog design as a **pipeline of cooperating agents**, not one-shot code generation.
+- **DA-RAG** and **CoS** are the main levers for domain fidelity without immediate RLHF/DPO on analog preferences.
+- Human-in-the-loop **checkpoints** keep the flow deployable while automation handles repetitive trial-and-error.
+- Long-term vision: **RF/Analog copilots** that pair with designers on complex blocks and systems.
+
+## Links
+
+<Row gap="12" wrap marginTop="8" marginBottom="32">
+  <Button
+    href="https://ieeexplore.ieee.org/abstract/document/11105933/"
+    variant="secondary"
+    label="IEEE Xplore"
+    prefixIcon="document"
+    size="m"
+    arrowIcon
+  />
+  <Button
+    href="https://arxiv.org/abs/2505.22990"
+    variant="secondary"
+    label="arXiv"
+    prefixIcon="openLink"
+    size="m"
+    arrowIcon
+  />
+  <Button
+    href="https://huggingface.co/papers/2505.22990"
+    variant="secondary"
+    label="Hugging Face Papers"
+    prefixIcon="openLink"
+    size="m"
+    arrowIcon
+  />
+</Row>
+
+## Index terms
+
+RF/Analog design · Large language models · Multi-agent systems · Netlist design · Chain-of-Stage · Diagram-aware RAG · IEEE ICLAD

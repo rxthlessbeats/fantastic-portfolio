@@ -1,0 +1,116 @@
+---
+title: "CNN–LSTM Blood Pressure Estimation from MIMIC-III/IV"
+subtitle: "MIMIC waveform database pipeline with BHS Grade A on held-out subjects"
+summary: "Hybrid 1D CNN–bidirectional LSTM models predict systolic and diastolic pressure from 5-second ECG + PPG windows aligned to arterial line labels in MIMIC-III/IV; test evaluation meets British Hypertension Society Grade A for both SBP and DBP."
+image: "/images/projects/blood_pressure/blood_pressure.png"
+publishedAt: "2024-11-15"
+tag: "Physiological Signal Processing, Deep Learning"
+---
+
+## Introduction
+
+Continuous **arterial blood pressure (ABP)** monitoring is invasive and impractical for routine use. This project trains **non-invasive surrogates**—**ECG** (lead II) and **photoplethysmography (PPG)**—to estimate **systolic (SBP)** and **diastolic (DBP)** blood pressure using the **[MIMIC Waveform Database](https://physionet.org/content/mimic3wdb/1.0/)** (MIMIC-III and MIMIC-IV waveform subsets).
+
+The core model is a **hybrid CNN–LSTM** (`BP_Model` in PyTorch): convolutional blocks extract local morphology, stacked **bidirectional LSTMs** model temporal context, and a linear head regresses mmHg labels. Predictions are evaluated with the **[British Hypertension Society (BHS) protocol](https://www.bhsoc.org/)**—reporting the percentage of estimates within **5, 10, and 15 mmHg** of reference ABP—and assigned letter grades **A–D**.
+
+## Problem & data
+
+**Goal:** From a 5-second window of synchronized ECG + PPG, predict the **SBP** and **DBP** derived from the invasive ABP waveform in the same window.
+
+**Signals (per segment):**
+
+- **ECG** — lead II, band-pass filtered (NeuroKit2)
+- **PPG** — plethysmography (`Pleth`), filtered
+- **ABP** — used only for labels (filtered 0.5–20 Hz)
+
+**Label generation:** Peaks and valleys on ABP are detected and refined (`sleepecg`, local peak correction). Mean pressure at corrected peaks → **SBP**; mean at valleys → **DBP**. Segments failing quality checks (heart-rate agreement, peak ratios, pulse pressure range) are discarded per the selection algorithm in `processing.py`.
+
+**Dataset scale (subject-level split, 80% / 10% / 10%):**
+
+- ~**230k** training windows
+- ~**33k** validation
+- ~**46k** test  
+
+Splits are by **subject ID** so the same patient never appears in both train and test.
+
+## Model architecture
+
+`BP_Model` (and variants `BP_Model_DO`, `BP_Model_BN`) share the same hybrid design:
+
+<Table
+  data={{
+    headers: [
+      { content: "Block", key: "block" },
+      { content: "Details", key: "details" },
+    ],
+    rows: [
+      ["Input", "5 s window, 2 channels (ECG + PPG), shape (seq_len, 2)"],
+      ["CNN encoder", "3× Conv1d (128 filters, k=3) + ReLU + MaxPool — downsample temporal resolution"],
+      ["Temporal head", "2× bidirectional LSTM (128 hidden units each direction)"],
+      ["Regression", "Last time-step features → linear layer → 1 output (SBP or DBP)"],
+    ],
+  }}
+/>
+
+Separate models are trained for **SBP** and **DBP** (same architecture, different targets). Training uses **MSE loss**, **Adam**, **ReduceLROnPlateau**, and **early stopping**; checkpoints saved as `torch_cnn_lstm_sbp.pth` / `torch_cnn_lstm_dbp.pth`.
+
+## BHS evaluation (test set)
+
+Grading thresholds from `evaluation.py` (Grade **A**: ≥60% within 5 mmHg, ≥85% within 10 mmHg, ≥95% within 15 mmHg):
+
+<Table
+  data={{
+    headers: [
+      { content: "Target", key: "target" },
+      { content: "MAE (mmHg)", key: "mae" },
+      { content: "≤5 mmHg", key: "w5" },
+      { content: "≤10 mmHg", key: "w10" },
+      { content: "≤15 mmHg", key: "w15" },
+      { content: "BHS grade", key: "grade" },
+    ],
+    rows: [
+      ["SBP", "4.71", "62.4%", "91.5%", "96.7%", "A"],
+      ["DBP", "2.48", "90.4%", "99.8%", "99.97%", "A"],
+    ],
+  }}
+/>
+
+Both models meet **BHS Grade A** on the held-out test subjects. Cross-validation notebooks (`cv.ipynb`) show similar A/B performance across folds.
+
+## Pipeline overview
+
+1. **Waveform access** — `wfdb` reads MIMIC-III/IV segments with ECG, PPG, and ABP (`data-exploration.ipynb`, `mimic3_data.ipynb`)
+2. **Segmentation** — 5-second non-overlapping windows (`split_segment` in `processing.py`)
+3. **Quality filter** — HR consistency, morphology ratios, pulse pressure bounds
+4. **Training** — `train_torch.ipynb` on `final_records_mimic3_all_with_id.parquet`
+5. **Evaluation** — `evaluation.py` BHS protocol + MAE / RMSE
+
+## Key takeaways
+
+- **Subject-level splits** are critical for realistic generalization in ICU waveform data.
+- **DBP** is easier than **SBP** under this setup (lower MAE, tighter BHS margins).
+- CNN–LSTM hybrids capture both **beat morphology** (conv) and **short-term dynamics** (LSTM) better than either block alone in this pipeline.
+- ABP remains the label source only—deployment targets cuff-free monitoring from wearable ECG/PPG.
+
+## Limitations & future work
+
+**Limitations:** R² on the test split is near zero (high inter-subject variance); models are trained primarily on MIMIC-III exports in the published training notebook; waveform access requires PhysioNet credentials.
+
+**Future work:** End-to-end multi-task SBP+DBP head, calibration per subject, and external validation on wearable datasets beyond ICU waveforms.
+
+## Project links
+
+<Row gap="12" wrap marginTop="8" marginBottom="32">
+  <Button
+    href="https://github.com/rxthlessbeats/CNN-LSTM-blood-pressure-prediction"
+    variant="secondary"
+    label="GitHub repository"
+    prefixIcon="github"
+    size="m"
+    arrowIcon
+  />
+</Row>
+
+## Index terms
+
+Blood pressure estimation · CNN–LSTM · ECG · PPG · ABP · MIMIC · British Hypertension Society · Physiological signal processing · PyTorch · Non-invasive monitoring
