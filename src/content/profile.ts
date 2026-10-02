@@ -37,6 +37,7 @@ export const about = {
 export const openSource = {
   name: "Agent Cowork Memory",
   repository: "https://github.com/rxthlessbeats/agent-cowork-memory",
+  website: "https://acm-website-sand.vercel.app",
   summary: "Shared task memory and delegation for Codex, Claude Code, Cursor, and OpenCode. Carry context between agents and collaborate on the same project.",
 };
 

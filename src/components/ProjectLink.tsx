@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ReactNode, PointerEvent } from "react";
 
-export function ProjectLink({ href, className, children }: { href: string; className: string; children: ReactNode }) {
+export function ProjectLink({ href, className, children, external }: { href: string; className: string; children: ReactNode; external?: boolean }) {
   function move(event: PointerEvent<HTMLAnchorElement>) {
     if (event.pointerType === "touch" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const card = event.currentTarget;
@@ -15,5 +15,8 @@ export function ProjectLink({ href, className, children }: { href: string; class
     card.style.setProperty("--tilt-x", `${(0.5 - y) * 7}deg`);
     card.style.setProperty("--tilt-y", `${(x - 0.5) * 7}deg`);
   }
-  return <Link href={href} className={className} onPointerMove={move} onPointerLeave={(event) => { event.currentTarget.style.setProperty("--tilt-x", "0deg"); event.currentTarget.style.setProperty("--tilt-y", "0deg"); }}>{children}</Link>;
+  const leave = (event: PointerEvent<HTMLAnchorElement>) => { event.currentTarget.style.setProperty("--tilt-x", "0deg"); event.currentTarget.style.setProperty("--tilt-y", "0deg"); };
+  return external
+    ? <a href={href} className={className} target="_blank" rel="noreferrer" onPointerMove={move} onPointerLeave={leave}>{children}</a>
+    : <Link href={href} className={className} onPointerMove={move} onPointerLeave={leave}>{children}</Link>;
 }
